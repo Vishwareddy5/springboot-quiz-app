@@ -1,98 +1,180 @@
-# 🧠 Quiz Management System (Spring Boot)
+🧠 Spring Boot Quiz Application
+A RESTful Quiz Application built using Spring Boot, Spring Data JPA, and PostgreSQL.
+This application allows creating quizzes dynamically, fetching questions, submitting answers, and calculating results with a clean layered architecture.
 
-A backend quiz application built using **Spring Boot** and **PostgreSQL** that dynamically generates quizzes based on category, securely delivers questions, evaluates user responses, and returns results.
+🚀 Features
 
-This project demonstrates clean architecture, proper database relationships, and industry-standard backend design.
+✅ Create quizzes dynamically by category
+🎲 Random question selection using native queries
+🔒 Secure question delivery (answers hidden from users)
+📊 Automated score calculation
+🏗️ Clean layered architecture (Controller → Service → DAO)
+🎯 DTO pattern for data transfer
+💾 Transaction management for data consistency
 
----
 
-## 🔹 Features
+🛠️ Tech Stack
+TechnologyPurposeJavaCore programming languageSpring BootBackend frameworkSpring Data JPAORM and database operationsHibernateJPA implementationPostgreSQLRelational databaseMavenBuild and dependency management
 
-- 📘 **Question Management**
-  - Add, update, delete, and retrieve questions
-  - Filter questions by category
+📁 Project Structure
+src/main/java/com/telusko/quizApp
+│
+├── Controller
+│   ├── QuestionController.java
+│   └── QuizController.java
+│
+├── Service
+│   ├── QuestionService.java
+│   └── QuizService.java
+│
+├── dao
+│   ├── QuestionDao.java
+│   └── QuizDao.java
+│
+├── model
+│   ├── Question.java
+│   ├── Quiz.java
+│   ├── Response.java
+│   └── QuestionWrapper.java
+│
+└── QuizAppApplication.java
 
-- 🧠 **Dynamic Quiz Generation**
-  - Create quizzes based on **category** and **number of questions**
-  - Random selection of questions from the database
+🎨 Key Design Decisions
 
-- 🔒 **Secure Question Delivery**
-  - Answers are never exposed to the client
-  - Uses DTO (`QuestionWrapper`) to hide correct answers
+DTO Pattern: QuestionWrapper hides correct answers from users during quiz delivery
+ID-Based Evaluation: Responses are matched using question IDs for accurate scoring
+Transactional Quiz Creation: Ensures data consistency when creating quizzes
+Native Query for Random Selection: Efficient question randomization using database-level queries
 
-- 🧮 **Server-Side Evaluation**
-  - Accepts user responses
-  - Matches answers using **question IDs**
-  - Calculates and returns the final score
 
-- 🗃 **Relational Database Design**
-  - Many-to-Many relationship between `Quiz` and `Question`
-  - Join table: `quiz_questions`
+⚙️ Configuration
+Prerequisites
 
----
+Java 17 or higher
+PostgreSQL installed and running
+Maven
 
-## 🛠 Tech Stack
+Database Setup
 
-- **Backend:** Spring Boot (Java)
-- **ORM:** Hibernate / JPA
-- **Database:** PostgreSQL
-- **Build Tool:** Maven
-- **Utilities:** Lombok
-- **Architecture:** Controller → Service → Repository
+Create a PostgreSQL database named questiondb
+Update your application.properties:
 
----
+propertiesserver.port=8090
 
-## 📐 Database Schema
+spring.datasource.url=jdbc:postgresql://localhost:5432/questiondb
+spring.datasource.username=postgres
+spring.datasource.password=YOUR_PASSWORD
 
-### Tables
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
 
-#### `question`
-| Column | Description |
-|-------|-------------|
-| id | Question ID |
-| question_title | Question text |
-| option1–4 | Answer options |
-| right_answer | Correct answer |
-| category | Question category |
-| difficulty_level | Difficulty level |
+🚀 How to Run Locally
+1️⃣ Clone the Repository
+bashgit clone https://github.com/Vishwareddy5/springboot-quiz-app.git
+cd springboot-quiz-app
+2️⃣ Configure Database
 
-#### `quiz`
-| Column | Description |
-|--------|-------------|
-| id | Quiz ID |
-| title | Quiz title |
+Create a PostgreSQL database named questiondb
+Update username and password in application.properties
 
-#### `quiz_questions`
-Join table mapping quizzes to questions (Many-to-Many).
+3️⃣ Run the Application
+bash./mvnw spring-boot:run
+The application will start on http://localhost:8090
 
----
+📥 API Endpoints
+📝 Question Management
+Get All Questions
+httpGET /question/allQuestions
+Get Questions by Category
+httpGET /question/category/{category}
+Add New Question
+httpPOST /question/add
+Content-Type: application/json
 
-## 🔌 API Endpoints
+{
+  "questionTitle": "What is Java?",
+  "option1": "Programming Language",
+  "option2": "Coffee",
+  "option3": "Island",
+  "option4": "Framework",
+  "rightAnswer": "Programming Language",
+  "difficulty": "Easy",
+  "category": "java"
+}
+🎯 Quiz Operations
+Create Quiz
+httpPOST /quiz/create?category=java&numQ=5&title=JavaQuiz
+Get Quiz Questions
+httpGET /quiz/get/1
+Response: Returns questions without exposing correct answers
+json[
+  {
+    "id": 1,
+    "questionTitle": "What is Java?",
+    "option1": "Programming Language",
+    "option2": "Coffee",
+    "option3": "Island",
+    "option4": "Framework"
+  }
+]
+Submit Quiz
+httpPOST /quiz/submit/1
+Content-Type: application/json
 
-### 📘 Question APIs
+[
+  { "id": 1, "response": "A language" },
+  { "id": 5, "response": "Use of pointers" },
+  { "id": 6, "response": "4 bytes" }
+]
+Response:
+json{
+  "score": 2,
+  "totalQuestions": 3
+}
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/question/allquestions` | Fetch all questions |
-| GET | `/question/category/{cat}` | Get questions by category |
-| POST | `/question/add` | Add a new question |
-| PUT | `/question/{id}` | Update a question |
-| DELETE | `/question/{id}` | Delete a question |
+🎯 Sample Usage Flow
 
----
+Add Questions → POST /question/add
+Create Quiz → POST /quiz/create?category=java&numQ=5&title=JavaBasics
+Get Quiz → GET /quiz/get/1 (Returns questions without answers)
+Submit Answers → POST /quiz/submit/1 (Get your score!)
 
-### 🧠 Quiz APIs
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/quiz/create?category={cat}&numQ={n}&title={title}` | Create a quiz |
-| GET | `/quiz/get/{id}` | Get quiz questions (without answers) |
-| POST | `/quiz/submit/{id}` | Submit answers and get score |
+🔮 Future Enhancements
 
----
+🔐 User authentication (JWT)
+📈 Quiz history & analytics
+⏱️ Timer-based quizzes
+👨‍💼 Admin dashboard
+🏆 Leaderboard system
+📊 Difficulty-based scoring
+🎨 Frontend integration
 
-## 📥 Sample Requests
 
-### ▶ Create Quiz
-```http
-POST /quiz/create?category=java&numQ=5&title=JavaQuiz
+🤝 Contributing
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+Fork the project
+Create your feature branch (git checkout -b feature/AmazingFeature)
+Commit your changes (git commit -m 'Add some AmazingFeature')
+Push to the branch (git push origin feature/AmazingFeature)
+Open a Pull Request
+
+
+👨‍💻 Author
+Viswa
+Spring Boot Developer | REST APIs | PostgreSQL
+
+
+
+🙏 Acknowledgments
+
+Spring Boot Documentation
+PostgreSQL Community
+Telusko YouTube Channel
+
+
+<div align="center">
+⭐ Star this repository if you found it helpful!
+Made with ❤️ and ☕ by Viswa
+</div>
